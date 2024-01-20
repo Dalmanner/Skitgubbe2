@@ -18,4 +18,13 @@
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/background_main" />
 
+    <Button
+        android:id="@+id/startButton"
+        android:layout_width="408dp"
+        android:layout_height="53dp"
+        android:text="START HERE!!!"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
