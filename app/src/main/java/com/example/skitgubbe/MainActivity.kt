@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
                     val opponentType = when (radioGroup.checkedRadioButtonId) {
                         R.id.playAgainstFriendButton -> "Friend"
                         R.id.playAgainstCpuButton -> "CPU"
-                        else -> ""
+                        else -> "CPU"
                     }
 
                     // Now use playerName and opponentType to start the game// Code to handle input goes here
