@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity() {
 
             alertDialog.show()
         }
-            // Code to show dialog or start new activity goes here
+
         }
     }
 

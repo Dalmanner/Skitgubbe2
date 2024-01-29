@@ -2,52 +2,68 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/constraintLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background_main">
+    android:background="#A9FFFFFF"
+    android:backgroundTint="#882440D1">
 
     <LinearLayout
         android:id="@+id/user_laid_out"
-        android:layout_width="398dp"
-        android:layout_height="148dp"
+        android:layout_width="362dp"
+        android:layout_height="158dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="36dp"
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.2"
         app:layout_constraintStart_toStartOf="parent">
 
         <ImageView
             android:id="@+id/user_laid_out1"
-            android:layout_width="135dp"
-            android:layout_height="158dp"
-            android:contentDescription="discard pile" />
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:contentDescription="user_laid_out1" />
 
         <ImageView
             android:id="@+id/user_laid_out2"
-            android:layout_width="135dp"
-            android:layout_height="158dp"
-            android:contentDescription="discard pile" />
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:contentDescription="user_laid_out2" />
 
         <ImageView
             android:id="@+id/user_laid_out3"
-            android:layout_width="135dp"
-            android:layout_height="158dp"
-            android:contentDescription="discard pile" />
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:contentDescription="user_laid_out3" />
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/user_hand"
-        android:layout_width="371dp"
-        android:layout_height="184dp"
-        android:layout_marginTop="376dp"
-        android:orientation="horizontal"
+    <HorizontalScrollView
+        android:id="@+id/horizontalScrollView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:contentDescription="horizontalScrollView"
+        android:scrollbars="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/user_laid_out"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.4"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"></LinearLayout>
+        app:layout_constraintTop_toBottomOf="@+id/draw_pile">
+
+        <LinearLayout
+            android:id="@+id/user_hand"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:fadingEdge="horizontal"
+            android:orientation="horizontal">
+            <!-- Dynamically added card views will go here -->
+        </LinearLayout>
+    </HorizontalScrollView>
 
     <LinearLayout
         android:id="@+id/opponent_laid_out"
-        android:layout_width="396dp"
+        android:layout_width="wrap_content"
         android:layout_height="168dp"
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
@@ -56,40 +72,38 @@
 
         <ImageView
             android:id="@+id/opponent_laid_out1"
-            android:layout_width="135dp"
-            android:layout_height="158dp"
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
             android:contentDescription="laid out card" />
 
         <ImageView
             android:id="@+id/opponent_laid_out2"
-            android:layout_width="135dp"
-            android:layout_height="158dp"
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
             android:contentDescription="laid card" />
 
         <ImageView
             android:id="@+id/opponent_laid_out3"
-            android:layout_width="135dp"
-            android:layout_height="158dp"
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
             android:contentDescription="laid out card" />
     </LinearLayout>
 
     <ImageView
         android:id="@+id/draw_pile"
-        android:layout_width="130dp"
+        android:layout_width="100dp"
         android:layout_height="162dp"
         android:background="@drawable/card_back"
         android:contentDescription="draw pile"
-        app:layout_constraintBottom_toTopOf="@+id/user_hand"
         app:layout_constraintEnd_toStartOf="@id/discard_pile"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/opponent_laid_out" />
 
     <ImageView
         android:id="@+id/discard_pile"
-        android:layout_width="135dp"
+        android:layout_width="100dp"
         android:layout_height="158dp"
         android:contentDescription="discard pile"
-        app:layout_constraintBottom_toTopOf="@+id/user_hand"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/draw_pile"
         app:layout_constraintTop_toBottomOf="@+id/opponent_laid_out" />

@@ -32,10 +32,14 @@ open class Player {
         return handCards.any { card -> card.rank == Rank.TWO || card.rank == Rank.TEN }
     }
 
-    open fun chooseCardToPlay(topCardOfPile: Card?): Card {
-        // Add logic to choose a card to play
-        return handCards[0]
+    open fun chooseCardToPlay(topCardOfPile: Card?): Card? {
+        if (handCards.isNotEmpty()) {
+            // Existing logic to choose a card
+            return handCards.firstOrNull { canPlayCard(it, topCardOfPile) } ?: handCards.first()
+        }
+        return null // or some other logic for when the hand is empty
     }
+
 
     fun canPlayCard(cardToPlay: Card, pileTopCard: Card?): Boolean {
         if (pileTopCard == null) {

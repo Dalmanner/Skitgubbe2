@@ -1,20 +1,21 @@
 package com.example.skitgubbe
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+
 class Game {
     private val deck = Deck()
-    private val players: MutableList<Player> = mutableListOf()
-    private val pile: MutableList<Card> = mutableListOf()
-
-    init {
-        setupPlayers()
-        deck.shuffle()
-        dealInitialCards()
+    val players: MutableList<Player> = mutableListOf()
+    val pile: MutableList<Card> = mutableListOf()
+    interface GameUpdateListener {
+        fun onUpdateGameUI()
     }
 
-    private fun setupPlayers() {
-        // Create player instances and add them to the players list
-        // For example, for a 4-player game:
-        repeat(4) {
+    var gameUpdateListener: GameUpdateListener? = null
+
+    fun setupPlayers() {
+        repeat(2) {
             players.add(Player())
         }
     }
@@ -30,47 +31,63 @@ class Game {
     }
 
     fun startGame() {
-        val startingPlayerIndex = determineStartingPlayer()
-        playRound(startingPlayerIndex)
+        deck.shuffle()
+        dealInitialCards()
+        gameUpdateListener?.onUpdateGameUI()
+
+        val startingPlayerIndex = 0 // determineStartingPlayer()
+        //playRound(startingPlayerIndex)
+
     }
 
-    fun determineStartingPlayer(): Int {
+    /*fun determineStartingPlayer(): Int? {
         var playersWithHighestCard: MutableList<Int> = mutableListOf()
-        var highestCardRank = Rank.TWO
+        var highestCardRank: Rank? = null
 
-        do {
-            val drawnCards = players.map { it -> deck.dealCard()!! }
+        while (playersWithHighestCard.size != 1) {
+            val drawnCards = players.map { deck.dealCard() }
+
+            if (drawnCards.any { it == null }) {
+                // Deck is empty or not enough cards to continue
+                return null
+            }
+
             println("Drawn cards: ${drawnCards.joinToString()}") // For debugging
 
             drawnCards.forEachIndexed { index, card ->
-                if (card.rank > highestCardRank) {
-                    highestCardRank = card.rank
-                    playersWithHighestCard.clear()
-                    playersWithHighestCard.add(index)
-                } else if (card.rank == highestCardRank) {
-                    playersWithHighestCard.add(index)
+                card?.let {
+                    if (highestCardRank == null || card.rank > highestCardRank!!) {
+                        highestCardRank = card.rank
+                        playersWithHighestCard.clear()
+                        playersWithHighestCard.add(index)
+                    } else if (card.rank == highestCardRank) {
+                        playersWithHighestCard.add(index)
+                    }
                 }
             }
 
             if (playersWithHighestCard.size > 1) {
                 println("Tie between players: ${playersWithHighestCard.joinToString()} - Redrawing")
-                highestCardRank = Rank.TWO
+                highestCardRank = null
             }
-        } while (playersWithHighestCard.size > 1)
+        }
 
-        return playersWithHighestCard.first()
-    }
+        return playersWithHighestCard.firstOrNull()
+    }*/
 
-    private fun playRound(startingPlayerIndex: Int) {
+
+    private fun playRound(startingPlayerIndex: Int?) {
         // Main game loop
         var currentPlayerIndex = startingPlayerIndex
-        while (!isGameOver()) {
-            val currentPlayer = players[currentPlayerIndex]
+        while (!isGameOver(false)) {
+
+            val currentPlayer = players[currentPlayerIndex!!]
             // Player's turn logic
             takeTurn(currentPlayer)
 
             // Move to the next player
             currentPlayerIndex = (currentPlayerIndex + 1) % players.size
+            isGameOver(true)
         }
 
         // Determine winner or loser at the end of the game
@@ -82,11 +99,11 @@ class Game {
             val topCardOfPile = pile.lastOrNull()
             val cardToPlay = player.chooseCardToPlay(topCardOfPile)
 
-            if (cardToPlay != null && player.canPlayCard(cardToPlay, pile.last())) {
+            if (cardToPlay != null && player.canPlayCard(cardToPlay, topCardOfPile)) {
                 pile.add(cardToPlay)
                 player.playCard(cardToPlay)
 
-                if (cardToPlay.rank == Rank.TWO) { } // We might not need this. The player continues to play, and the top card will be 2, on which any card can be played.
+                //if (cardToPlay.rank == Rank.TWO) {} // We might not need this. The player continues to play, and the top card will be 2, on which any card can be played.
                 if (cardToPlay.rank == Rank.TEN) {
                     pile.clear()
                 }
@@ -96,19 +113,13 @@ class Game {
             }
 
         }
-
-
         player.drawCard(deck)
     }
 
 
-    private fun isGameOver(): Boolean {
+    private fun isGameOver(over: Boolean): Boolean {
         // return players.count { it.hasCards() } <= 1
-        return true
+        return over;
     }
 
-    private fun compareCards(card1: Card, card2: Card): Int {
-        // Compare cards based on their rank
-        return card1.rank.compareTo(card2.rank)
-    }
 }
