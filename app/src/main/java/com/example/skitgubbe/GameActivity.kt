@@ -4,7 +4,9 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -26,7 +28,7 @@ class GameActivity : AppCompatActivity(), Game.GameUpdateListener {
 
         coroutineScope.launch {
             withContext(Dispatchers.IO) {
-            game = Game()
+            game = Game(this@GameActivity)
             game.gameUpdateListener = this@GameActivity
             game.setupPlayers()
             game.startGame()
@@ -34,21 +36,23 @@ class GameActivity : AppCompatActivity(), Game.GameUpdateListener {
             withContext(Dispatchers.Main) {
                 updateGameUI()
             }
-            //game.startGame()
+            Toast.makeText(this@GameActivity, "Welcome $playerName! You are playing against $opponentType", Toast.LENGTH_LONG).show()
+            Toast.makeText(this@GameActivity, "Let´s begin, $playerName! Pick one of your three cards", Toast.LENGTH_LONG).show()
         }
     }
 
     override fun onUpdateGameUI() {
         runOnUiThread {
             updateGameUI()
+            // onComplete()
         }
     }
 
+    @SuppressLint("DiscouragedApi")
     private fun getCardImageResource(card: Card): Int {
         val resourceName = "${card.rank.name.lowercase()}_of_${card.suit.name.lowercase()}"
         return resources.getIdentifier(resourceName, "drawable", packageName)
     }
-
 
     fun updateGameUI() {
         val playerHandLayout = findViewById<LinearLayout>(R.id.user_hand)
@@ -68,6 +72,11 @@ class GameActivity : AppCompatActivity(), Game.GameUpdateListener {
         val cardImageView = ImageView(this).apply {
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT)
             setImageResource(getCardImageResource(card))
+            setOnClickListener {
+                lifecycleScope.launch {
+                    game.playCardFromHand(card)
+                }
+            }
         }
         layout.addView(cardImageView)
     }

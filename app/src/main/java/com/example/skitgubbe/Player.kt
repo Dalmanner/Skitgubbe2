@@ -34,10 +34,9 @@ open class Player {
 
     open fun chooseCardToPlay(topCardOfPile: Card?): Card? {
         if (handCards.isNotEmpty()) {
-            // Existing logic to choose a card
             return handCards.firstOrNull { canPlayCard(it, topCardOfPile) } ?: handCards.first()
         }
-        return null // or some other logic for when the hand is empty
+        return null
     }
 
 

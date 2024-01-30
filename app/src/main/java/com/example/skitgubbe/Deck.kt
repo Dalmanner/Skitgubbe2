@@ -21,4 +21,8 @@ class Deck {
         }
         return null
     }
+
+    fun hasCards(): Boolean {
+        return cards.isNotEmpty()
+    }
 }
