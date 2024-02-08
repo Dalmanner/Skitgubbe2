@@ -40,7 +40,7 @@ open class Player {
     }
 
 
-    fun canPlayCard(cardToPlay: Card, pileTopCard: Card?): Boolean {
+    open fun canPlayCard(cardToPlay: Card, pileTopCard: Card?): Boolean {
         if (pileTopCard == null) {
             return true
         }

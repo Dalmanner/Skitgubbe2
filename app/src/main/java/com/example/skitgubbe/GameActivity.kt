@@ -26,6 +26,15 @@ class GameActivity : AppCompatActivity(), Game.GameUpdateListener {
         val playerName = intent.getStringExtra("playerName")
         val opponentType = intent.getStringExtra("opponentType")
 
+        val drawPileImageView = findViewById<ImageView>(R.id.draw_pile)
+        drawPileImageView.setOnClickListener {
+            Toast.makeText(this, "Picked up", Toast.LENGTH_SHORT).show()
+            lifecycleScope.launch {
+                game.refillHandToMinimum(game.players[0]) // Assuming player 0 is the user
+                onUpdateGameUI() // Update the UI to reflect the new hand
+            }
+        }
+
         coroutineScope.launch {
             withContext(Dispatchers.IO) {
             game = Game(this@GameActivity)
