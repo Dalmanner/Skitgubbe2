@@ -30,8 +30,16 @@ class GameActivity : AppCompatActivity(), Game.GameUpdateListener {
         drawPileImageView.setOnClickListener {
             Toast.makeText(this, "Picked up", Toast.LENGTH_SHORT).show()
             lifecycleScope.launch {
-                game.refillHandToMinimum(game.players[0]) // Assuming player 0 is the user
-                onUpdateGameUI() // Update the UI to reflect the new hand
+                game.refillHandToMinimum(game.players[0])
+                onUpdateGameUI()
+            }
+        }
+        val discardPileImageView = findViewById<ImageView>(R.id.discard_pile)
+        discardPileImageView.setOnClickListener {
+            Toast.makeText(this, "Picked up discard pile", Toast.LENGTH_SHORT).show()
+            lifecycleScope.launch {
+                game.players[0].pickUpPile(game.pile)
+                onUpdateGameUI()
             }
         }
 
@@ -45,8 +53,8 @@ class GameActivity : AppCompatActivity(), Game.GameUpdateListener {
             withContext(Dispatchers.Main) {
                 updateGameUI()
             }
-            Toast.makeText(this@GameActivity, "Welcome $playerName! You are playing against $opponentType", Toast.LENGTH_LONG).show()
-            Toast.makeText(this@GameActivity, "Let´s begin, $playerName! Pick one of your three cards", Toast.LENGTH_LONG).show()
+            Toast.makeText(this@GameActivity, "Welcome $playerName! You are playing against $opponentType", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@GameActivity, "Let´s begin, $playerName! Pick one of your three cards", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -74,7 +82,14 @@ class GameActivity : AppCompatActivity(), Game.GameUpdateListener {
         updateLaidOutCards(game.players[1].faceUpCards, R.id.opponent_laid_out1, R.id.opponent_laid_out2, R.id.opponent_laid_out3)
 
         val laidCardView = findViewById<ImageView>(R.id.discard_pile)
-        game.pile.lastOrNull()?.let { laidCardView.setImageResource(getCardImageResource(it)) }
+        if (game.pile.isNotEmpty()) {
+            game.pile.lastOrNull()?.let {
+                laidCardView.setImageResource(getCardImageResource(it))
+                laidCardView.visibility = ImageView.VISIBLE // Ensure the pile is visible if there are cards
+            }
+        } else {
+            laidCardView.visibility = ImageView.INVISIBLE // Hide the pile if it's empty
+        }
     }
 
     private fun addCardToLayout(layout: LinearLayout, card: Card) {

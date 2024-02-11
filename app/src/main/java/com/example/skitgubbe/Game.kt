@@ -23,9 +23,8 @@ class Game(private val context: Context) {
     var gameUpdateListener: GameUpdateListener? = null
 
     fun setupPlayers() {
-        repeat(2) {
-            players.add(Player())
-        }
+        players.add(Player()) // Assuming this is the human player
+        players.add(AIPlayer()) // This should be the AI player
     }
 
     private fun dealInitialCards() {
@@ -54,16 +53,15 @@ class Game(private val context: Context) {
     }
 
     fun playCardFromHand(card: Card) {
-        val currentPlayer = players[0]  // TODO: Provide player dynamically, currently assuming player 0 is always the user
+        val currentPlayer = players[0]
         if (currentPlayer.canPlayCard(card, pile.lastOrNull())) {
             currentPlayer.playCard(card)
             pile.add(card)
             gameUpdateListener?.onUpdateGameUI()
-   /*         suspendCoroutine<Unit> { continuation ->
-                gameUpdateListener?.onUpdateGameUI {
-                    continuation.resume(Unit)
-                }
-            } */
+            if (card.rank == Rank.TEN) {
+                pile.clear()
+                gameUpdateListener?.onUpdateGameUI()}
+
         } else {
             Toast.makeText(context, "You can't play this card", LENGTH_SHORT).show()
         }
@@ -74,45 +72,10 @@ class Game(private val context: Context) {
             player.drawCard(deck)
         }
         gameUpdateListener?.onUpdateGameUI() // Notify the UI to update after drawing cards
-        aiPlayerTakeTurn()
-    }
-
-
-    /*fun determineStartingPlayer(): Int? {
-        var playersWithHighestCard: MutableList<Int> = mutableListOf()
-        var highestCardRank: Rank? = null
-
-        while (playersWithHighestCard.size != 1) {
-            val drawnCards = players.map { deck.dealCard() }
-
-            if (drawnCards.any { it == null }) {
-                // Deck is empty or not enough cards to continue
-                return null
-            }
-
-            println("Drawn cards: ${drawnCards.joinToString()}") // For debugging
-
-            drawnCards.forEachIndexed { index, card ->
-                card?.let {
-                    if (highestCardRank == null || card.rank > highestCardRank!!) {
-                        highestCardRank = card.rank
-                        playersWithHighestCard.clear()
-                        playersWithHighestCard.add(index)
-                    } else if (card.rank == highestCardRank) {
-                        playersWithHighestCard.add(index)
-                    }
-                }
-            }
-
-            if (playersWithHighestCard.size > 1) {
-                println("Tie between players: ${playersWithHighestCard.joinToString()} - Redrawing")
-                highestCardRank = null
-            }
+        if (player !is AIPlayer){
+            aiPlayerTakeTurn()
         }
-
-        return playersWithHighestCard.firstOrNull()
-    }*/
-
+    }
 
     private fun playRound(startingPlayerIndex: Int?) {
         // Main game loop
@@ -181,16 +144,15 @@ class Game(private val context: Context) {
 
     // Call this method when it's time for the AIPlayer to take its turn
     fun aiPlayerTakeTurn() {
-        makeText(context, "AIPlayer's turn", LENGTH_SHORT).show()
-        val aiPlayer = players.firstOrNull() { it is AIPlayer } as? AIPlayer // Assuming the AIPlayer is in the players list
+        makeText(context, "AIPlayer's turn, thinking...", LENGTH_SHORT).show()
 
-        makeText(context, "AIPlayer $aiPlayer", LENGTH_SHORT).show()
+        val aiPlayer = players[1] as? AIPlayer
 
         aiPlayer?.let {
             val topCardOfPile = pile.lastOrNull()
-            val cardToPlay = aiPlayer.chooseCardToPlay(topCardOfPile)
-            // add cardToPlay variable to the Toast message to see which card the AI chose to play
-
+            //wait for 2 seconds
+            Thread.sleep(5000)
+            val cardToPlay = aiPlayer.chooseCardToPlay(topCardOfPile)//or null)
             makeText(context, "AI chose to play $cardToPlay", LENGTH_SHORT).show()
 
             if (cardToPlay != null) {
@@ -198,6 +160,14 @@ class Game(private val context: Context) {
                 aiPlayer.playCard(cardToPlay)
                 if (cardToPlay.rank == Rank.TEN) {
                     pile.clear()
+                    gameUpdateListener?.onUpdateGameUI()
+                    //play another card
+                    aiPlayerTakeTurn()
+                }
+                if (cardToPlay.rank == Rank.TWO) {
+                    gameUpdateListener?.onUpdateGameUI()
+                    //play another card
+                    aiPlayerTakeTurn()
                 }
                 if (topCardOfPile != null) {
                     aiPlayer.handCards.filter { card -> card.rank == topCardOfPile.rank && card != topCardOfPile }.forEach { additionalCard ->
@@ -205,10 +175,13 @@ class Game(private val context: Context) {
                         pile.add(additionalCard)
                     }
                 }
-                makeText(context, "AI played card", LENGTH_SHORT).show()
+                refillHandToMinimum(aiPlayer)
             } else {
+                // Pick up the pile if the AIPlayer can't play a card
+
                 aiPlayer.pickUpPile(pile)
-                makeText(context, "AI could not play card, picking up pile", LENGTH_SHORT).show()
+                makeText(context, "AI picked up the pile", LENGTH_SHORT).show()
+                makeText(context," " + aiPlayer.handCards.map { it.rank }, LENGTH_SHORT).show()
             }
             gameUpdateListener?.onUpdateGameUI()
         }

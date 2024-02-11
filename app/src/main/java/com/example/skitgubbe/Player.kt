@@ -1,5 +1,9 @@
 package com.example.skitgubbe
 
+import android.util.Log
+import android.widget.Toast
+
+
 open class Player {
     val handCards: MutableList<Card> = mutableListOf()
     val faceDownCards: MutableList<Card> = mutableListOf()
@@ -25,11 +29,7 @@ open class Player {
     fun pickUpPile(pile: MutableList<Card>) {
         handCards.addAll(pile)
         pile.clear()
-    }
-
-    // Check for special cards like twos or tens in the player's hand
-    fun hasSpecialCard(): Boolean {
-        return handCards.any { card -> card.rank == Rank.TWO || card.rank == Rank.TEN }
+        Log.d("Player", "Picked up the pile '${pile.size}' cards")
     }
 
     open fun chooseCardToPlay(topCardOfPile: Card?): Card? {
@@ -41,7 +41,7 @@ open class Player {
 
 
     open fun canPlayCard(cardToPlay: Card, pileTopCard: Card?): Boolean {
-        if (pileTopCard == null) {
+        if (pileTopCard == null || pileTopCard.rank == Rank.TWO ){
             return true
         }
         if (cardToPlay.rank == Rank.TWO || cardToPlay.rank == Rank.TEN) {
