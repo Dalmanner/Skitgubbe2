@@ -1,7 +1,7 @@
 package com.example.skitgubbe
 
 class Deck {
-    private val cards: MutableList<Card> = mutableListOf()
+    val cards: MutableList<Card> = mutableListOf()
 
     init {
         for (suit in Suit.entries) {

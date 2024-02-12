@@ -3,18 +3,13 @@ package com.example.skitgubbe
 import android.content.Context
 import android.widget.Toast
 import android.widget.Toast.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 
 class Game(private val context: Context) {
     private val deck = Deck()
     val players: MutableList<Player> = mutableListOf()
-    val pile: MutableList<Card> = mutableListOf()
+    val discardPile: MutableList<Card> = mutableListOf()
+    val drawPile: MutableList<Card> = mutableListOf()
     interface GameUpdateListener {
         //fun onUpdateGameUI(onComplete: () -> Unit)
         fun onUpdateGameUI()
@@ -40,26 +35,20 @@ class Game(private val context: Context) {
     fun startGame() {
         deck.shuffle()
         dealInitialCards()
+        //send rest of cards to drawPile
+        drawPile.addAll(deck.cards)
         gameUpdateListener?.onUpdateGameUI()
-   /*     suspendCoroutine<Unit> { continuation ->
-            gameUpdateListener?.onUpdateGameUI {
-                continuation.resume(Unit)
-            } */
-
-            val startingPlayerIndex = 0 // determineStartingPlayer()
-            // playRound(startingPlayerIndex)
-
 
     }
 
     fun playCardFromHand(card: Card) {
         val currentPlayer = players[0]
-        if (currentPlayer.canPlayCard(card, pile.lastOrNull())) {
+        if (currentPlayer.canPlayCard(card, discardPile.lastOrNull())) {
             currentPlayer.playCard(card)
-            pile.add(card)
+            discardPile.add(card)
             gameUpdateListener?.onUpdateGameUI()
             if (card.rank == Rank.TEN) {
-                pile.clear()
+                discardPile.clear()
                 gameUpdateListener?.onUpdateGameUI()}
 
         } else {
@@ -69,7 +58,10 @@ class Game(private val context: Context) {
 
     fun refillHandToMinimum(player: Player) {
         while (player.handCards.size < 3 && deck.hasCards()) {
+            //remove from drawPile and add to handCards
             player.drawCard(deck)
+            drawPile.removeAt(0)
+            makeText(context, "Cards left in draw pile: " + drawPile.size, LENGTH_SHORT).show()
         }
         gameUpdateListener?.onUpdateGameUI() // Notify the UI to update after drawing cards
         if (player !is AIPlayer){
@@ -107,14 +99,14 @@ class Game(private val context: Context) {
                     continuation.resume(Unit)
                 }
             } */
-            val topCardOfPile = pile.lastOrNull()
+            val topCardOfPile = discardPile.lastOrNull()
             val cardToPlay = player.chooseCardToPlay(topCardOfPile)
 
             if (cardToPlay != null && player.canPlayCard(cardToPlay, topCardOfPile)) {
-                pile.add(cardToPlay)
+                discardPile.add(cardToPlay)
                 player.playCard(cardToPlay)
                 if (cardToPlay.rank == Rank.TEN) {
-                    pile.clear()
+                    discardPile.clear()
 
                 }
                 // Draw a new card if the deck has cards left
@@ -122,7 +114,7 @@ class Game(private val context: Context) {
                     player.drawCard(deck)
                 }
             } else {
-                player.pickUpPile(pile)
+                player.pickUpPile(discardPile)
                 continueTurn = false
             }
         }
@@ -141,45 +133,42 @@ class Game(private val context: Context) {
         gameUpdateListener?.onUpdateGameUI()
 
     }
-
-    // Call this method when it's time for the AIPlayer to take its turn
     fun aiPlayerTakeTurn() {
         makeText(context, "AIPlayer's turn, thinking...", LENGTH_SHORT).show()
 
         val aiPlayer = players[1] as? AIPlayer
 
         aiPlayer?.let {
-            val topCardOfPile = pile.lastOrNull()
-            //wait for 2 seconds
+            val topCardOfPile = discardPile.lastOrNull()
             Thread.sleep(5000)
             val cardToPlay = aiPlayer.chooseCardToPlay(topCardOfPile)//or null)
             makeText(context, "AI chose to play $cardToPlay", LENGTH_SHORT).show()
 
             if (cardToPlay != null) {
-                pile.add(cardToPlay)
+                discardPile.add(cardToPlay)
                 aiPlayer.playCard(cardToPlay)
                 if (cardToPlay.rank == Rank.TEN) {
-                    pile.clear()
+                    discardPile.clear()
                     gameUpdateListener?.onUpdateGameUI()
-                    //play another card
                     aiPlayerTakeTurn()
                 }
                 if (cardToPlay.rank == Rank.TWO) {
                     gameUpdateListener?.onUpdateGameUI()
-                    //play another card
-                    aiPlayerTakeTurn()
-                }
+                    //play any another card from the hand if the top card of the pile is a two)
+                    //or if the card is equal to the top card of the pile:
+                    aiPlayerTakeTurn()}
+
                 if (topCardOfPile != null) {
                     aiPlayer.handCards.filter { card -> card.rank == topCardOfPile.rank && card != topCardOfPile }.forEach { additionalCard ->
                         aiPlayer.playCard(additionalCard)
-                        pile.add(additionalCard)
+                        discardPile.add(additionalCard)
                     }
-                }
+                }//explain the code below:
                 refillHandToMinimum(aiPlayer)
             } else {
                 // Pick up the pile if the AIPlayer can't play a card
 
-                aiPlayer.pickUpPile(pile)
+                aiPlayer.pickUpPile(discardPile)
                 makeText(context, "AI picked up the pile", LENGTH_SHORT).show()
                 makeText(context," " + aiPlayer.handCards.map { it.rank }, LENGTH_SHORT).show()
             }
@@ -188,12 +177,12 @@ class Game(private val context: Context) {
 
     }
 
-
-
+    fun shouldUseFaceUpCards(player: Player): Boolean {
+        return player.handCards.isEmpty() && player.faceUpCards.isNotEmpty() && drawPile.isEmpty()
+    }
 
     private fun isGameOver(over: Boolean): Boolean {
         // return players.count { it.hasCards() } <= 1
         return over;
     }
-
 }

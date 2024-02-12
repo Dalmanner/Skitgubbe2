@@ -28,7 +28,7 @@ class GameActivity : AppCompatActivity(), Game.GameUpdateListener {
 
         val drawPileImageView = findViewById<ImageView>(R.id.draw_pile)
         drawPileImageView.setOnClickListener {
-            Toast.makeText(this, "Picked up", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "$playerName: Your turn AI!", Toast.LENGTH_SHORT).show()
             lifecycleScope.launch {
                 game.refillHandToMinimum(game.players[0])
                 onUpdateGameUI()
@@ -38,7 +38,7 @@ class GameActivity : AppCompatActivity(), Game.GameUpdateListener {
         discardPileImageView.setOnClickListener {
             Toast.makeText(this, "Picked up discard pile", Toast.LENGTH_SHORT).show()
             lifecycleScope.launch {
-                game.players[0].pickUpPile(game.pile)
+                game.players[0].pickUpPile(game.discardPile)
                 onUpdateGameUI()
             }
         }
@@ -81,15 +81,60 @@ class GameActivity : AppCompatActivity(), Game.GameUpdateListener {
         updateLaidOutCards(game.players[0].faceUpCards, R.id.user_laid_out1, R.id.user_laid_out2, R.id.user_laid_out3)
         updateLaidOutCards(game.players[1].faceUpCards, R.id.opponent_laid_out1, R.id.opponent_laid_out2, R.id.opponent_laid_out3)
 
+        if (game.shouldUseFaceUpCards(game.players[0])) {
+            enableFaceUpCardsForPlay()
+        }
+
+        val drawPileImageView = findViewById<ImageView>(R.id.draw_pile)
+        if (game.drawPile.isNotEmpty()) {
+            drawPileImageView.setImageResource(R.drawable.card_back)
+            drawPileImageView.visibility = ImageView.VISIBLE
+        } else {
+            drawPileImageView.visibility = ImageView.INVISIBLE
+        }
+
         val laidCardView = findViewById<ImageView>(R.id.discard_pile)
-        if (game.pile.isNotEmpty()) {
-            game.pile.lastOrNull()?.let {
+        if (game.discardPile.isNotEmpty()) {
+            game.discardPile.lastOrNull()?.let {
                 laidCardView.setImageResource(getCardImageResource(it))
-                laidCardView.visibility = ImageView.VISIBLE // Ensure the pile is visible if there are cards
+                laidCardView.visibility = ImageView.VISIBLE
             }
         } else {
-            laidCardView.visibility = ImageView.INVISIBLE // Hide the pile if it's empty
+            laidCardView.visibility = ImageView.INVISIBLE
         }
+    }
+
+    private fun enableFaceUpCardsForPlay() {
+        val faceUpCardViews = arrayOf(findViewById<ImageView>(R.id.user_laid_out1), findViewById<ImageView>(R.id.user_laid_out2), findViewById<ImageView>(R.id.user_laid_out3))
+        val faceUpCards = game.players[0].faceUpCards
+
+        faceUpCardViews.forEachIndexed { index, imageView ->
+            if (index < game.players[0].faceUpCards.size) {
+                val card = faceUpCards[index]
+                imageView.setOnClickListener{
+                    lifecycleScope.launch {
+                        playCardFromFaceUpCards(card, game.players[0])
+                        onUpdateGameUI()
+                    }
+                }
+                imageView.visibility = ImageView.VISIBLE
+            } else {
+                imageView.visibility = ImageView.INVISIBLE
+            }
+        }
+    }
+
+    fun playCardFromFaceUpCards(card: Card, player: Player) {
+
+        if (player.canPlayCard(card, game.discardPile.lastOrNull())) {
+            player.faceUpCards.remove(card)
+            game.discardPile.add(card)
+        } else {
+            Toast.makeText(this, "You can't play that card", Toast.LENGTH_SHORT).show()
+        }
+        // Logic to play a card from face-up cards
+        // Ensure to move the card from faceUpCards to the pile
+        // And then refill the hand from the face-up cards if the draw pile is empty
     }
 
     private fun addCardToLayout(layout: LinearLayout, card: Card) {
@@ -113,7 +158,7 @@ class GameActivity : AppCompatActivity(), Game.GameUpdateListener {
 
     override fun onDestroy() {
         super.onDestroy()
-        coroutineScope.cancel() // Cancel any ongoing coroutines when the activity is destroyed
+        coroutineScope.cancel()
     }
 
 }
