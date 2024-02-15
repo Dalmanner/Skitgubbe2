@@ -38,14 +38,36 @@
             android:layout_width="100dp"
             android:layout_height="match_parent"
             android:contentDescription="user_laid_out3" />
+
+        <ImageView
+            android:id="@+id/user_face_down1"
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:contentDescription="user_face_down1" />
+
+        <ImageView
+            android:id="@+id/user_face_down2"
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:contentDescription="user_laid_out2" />
+
+        <ImageView
+            android:id="@+id/user_face_down3"
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:contentDescription="user_face_down3" />
     </LinearLayout>
 
     <HorizontalScrollView
         android:id="@+id/horizontalScrollView"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:animateLayoutChanges="true"
         android:background="@drawable/bg_skitgubbe"
         android:contentDescription="horizontalScrollView"
+        android:fadingEdge="vertical"
         android:scrollbars="horizontal"
         app:layout_constraintBottom_toTopOf="@+id/user_laid_out"
         app:layout_constraintEnd_toEndOf="parent"
@@ -95,19 +117,29 @@
         android:id="@+id/draw_pile"
         android:layout_width="100dp"
         android:layout_height="162dp"
+        android:layout_marginStart="10dp"
         android:background="@drawable/card_back"
         android:contentDescription="draw pile"
-        app:layout_constraintEnd_toStartOf="@id/discard_pile"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/opponent_laid_out" />
+
+    <ImageButton
+        android:id="@+id/turn_button"
+        android:layout_width="112dp"
+        android:layout_height="101dp"
+        android:background="@drawable/turn"
+        app:layout_constraintBottom_toTopOf="@+id/horizontalScrollView"
+        app:layout_constraintEnd_toStartOf="@+id/discard_pile"
+        app:layout_constraintStart_toEndOf="@+id/draw_pile"
         app:layout_constraintTop_toBottomOf="@+id/opponent_laid_out" />
 
     <ImageView
         android:id="@+id/discard_pile"
         android:layout_width="100dp"
         android:layout_height="158dp"
+        android:layout_marginEnd="10dp"
         android:contentDescription="discard pile"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/draw_pile"
         app:layout_constraintTop_toBottomOf="@+id/opponent_laid_out" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

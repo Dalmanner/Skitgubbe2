@@ -1,6 +1,7 @@
 package com.example.skitgubbe
 
 import android.content.Context
+import android.widget.ImageView
 import android.widget.Toast
 import android.widget.Toast.*
 
@@ -124,17 +125,11 @@ class Game(private val context: Context) {
             player.drawCard(deck)
         }
 
-        // Update the UI after the turn is complete
-       /* suspendCoroutine<Unit> { continuation ->
-            gameUpdateListener?.onUpdateGameUI {
-                continuation.resume(Unit)
-            }
-        } */
         gameUpdateListener?.onUpdateGameUI()
 
     }
     fun aiPlayerTakeTurn() {
-        makeText(context, "AIPlayer's turn, thinking...", LENGTH_SHORT).show()
+        makeText(context, "AI's turn, thinking...", LENGTH_SHORT).show()
 
         val aiPlayer = players[1] as? AIPlayer
 
@@ -142,11 +137,20 @@ class Game(private val context: Context) {
             val topCardOfPile = discardPile.lastOrNull()
             Thread.sleep(5000)
             val cardToPlay = aiPlayer.chooseCardToPlay(topCardOfPile)//or null)
+
             makeText(context, "AI chose to play $cardToPlay", LENGTH_SHORT).show()
 
             if (cardToPlay != null) {
                 discardPile.add(cardToPlay)
                 aiPlayer.playCard(cardToPlay)
+                //check if there is another card of the same Rank as chosen in hand and play that as well:
+                val checkForSameRank = aiPlayer.handCards.filter { it.rank == cardToPlay?.rank }
+                if (checkForSameRank.isNotEmpty()) {
+                    checkForSameRank.forEach { additionalCard ->
+                        aiPlayer.playCard(additionalCard)
+                        discardPile.add(additionalCard)
+                    }
+                }
                 if (cardToPlay.rank == Rank.TEN) {
                     discardPile.clear()
                     gameUpdateListener?.onUpdateGameUI()
@@ -154,8 +158,6 @@ class Game(private val context: Context) {
                 }
                 if (cardToPlay.rank == Rank.TWO) {
                     gameUpdateListener?.onUpdateGameUI()
-                    //play any another card from the hand if the top card of the pile is a two)
-                    //or if the card is equal to the top card of the pile:
                     aiPlayerTakeTurn()}
 
                 if (topCardOfPile != null) {
@@ -163,10 +165,9 @@ class Game(private val context: Context) {
                         aiPlayer.playCard(additionalCard)
                         discardPile.add(additionalCard)
                     }
-                }//explain the code below:
+                }
                 refillHandToMinimum(aiPlayer)
             } else {
-                // Pick up the pile if the AIPlayer can't play a card
 
                 aiPlayer.pickUpPile(discardPile)
                 makeText(context, "AI picked up the pile", LENGTH_SHORT).show()
@@ -181,8 +182,22 @@ class Game(private val context: Context) {
         return player.handCards.isEmpty() && player.faceUpCards.isNotEmpty() && drawPile.isEmpty()
     }
 
-    private fun isGameOver(over: Boolean): Boolean {
-        // return players.count { it.hasCards() } <= 1
-        return over;
+    fun shouldUseFaceDownCards(player: Player): Boolean {
+        return player.handCards.isEmpty() && player.faceUpCards.isEmpty() && player.faceDownCards.isNotEmpty() && drawPile.isEmpty()
     }
+
+    //end the game if the drawPile is empty and the player has no cards left, and declare the loser to be Skitgubbe:
+
+    fun isGameOver(shouldEndGame: Boolean): Boolean {
+        if (drawPile.isEmpty() && players[0].handCards.isEmpty()) {
+            if (shouldEndGame) {
+                Toast.makeText(context, // Declare the loser to be Skitgubbe
+                    "Skitgubbe!", LENGTH_SHORT).show()
+            }
+            return true
+        }
+        return false
+    }
+
+
 }

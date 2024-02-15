@@ -2,6 +2,8 @@ package com.example.skitgubbe
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.widget.Button
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Toast
@@ -26,8 +28,8 @@ class GameActivity : AppCompatActivity(), Game.GameUpdateListener {
         val playerName = intent.getStringExtra("playerName")
         val opponentType = intent.getStringExtra("opponentType")
 
-        val drawPileImageView = findViewById<ImageView>(R.id.draw_pile)
-        drawPileImageView.setOnClickListener {
+        val turnButton = findViewById<ImageButton>(R.id.turn_button)
+        turnButton.setOnClickListener {
             Toast.makeText(this, "$playerName: Your turn AI!", Toast.LENGTH_SHORT).show()
             lifecycleScope.launch {
                 game.refillHandToMinimum(game.players[0])
@@ -85,6 +87,10 @@ class GameActivity : AppCompatActivity(), Game.GameUpdateListener {
             enableFaceUpCardsForPlay()
         }
 
+        if (game.shouldUseFaceDownCards(game.players[0])) {
+            enableFaceDownCardsForPlay()
+        }
+
         val drawPileImageView = findViewById<ImageView>(R.id.draw_pile)
         if (game.drawPile.isNotEmpty()) {
             drawPileImageView.setImageResource(R.drawable.card_back)
@@ -131,9 +137,44 @@ class GameActivity : AppCompatActivity(), Game.GameUpdateListener {
             game.discardPile.add(card)
         } else {
             Toast.makeText(this, "You can't play that card", Toast.LENGTH_SHORT).show()
+
         }
         // Logic to play a card from face-up cards
         // Ensure to move the card from faceUpCards to the pile
+        // And then refill the hand from the face-up cards if the draw pile is empty
+    }
+
+    //Logic to play a card from face-down cards:
+
+    private fun enableFaceDownCardsForPlay() {
+        val faceDownCardViews = arrayOf(findViewById<ImageView>(R.id.user_face_down1), findViewById<ImageView>(R.id.user_face_down2), findViewById<ImageView>(R.id.user_laid_out3))
+        val faceDownCards = game.players[0].faceDownCards
+
+        faceDownCardViews.forEachIndexed { index, imageView ->
+            if (index < game.players[0].faceDownCards.size) {
+                val card = faceDownCards[index]
+                imageView.setOnClickListener{
+                    lifecycleScope.launch {
+                        playCardFromFaceDownCards(card, game.players[0])
+                        onUpdateGameUI()
+                    }
+                }
+                imageView.visibility = ImageView.VISIBLE
+            } else {
+                imageView.visibility = ImageView.INVISIBLE
+            }
+        }
+    }
+
+    fun playCardFromFaceDownCards(card: Card, player: Player) {
+        if (player.canPlayCard(card, game.discardPile.lastOrNull())) {
+            player.faceDownCards.remove(card)
+            game.discardPile.add(card)
+        } else {
+            Toast.makeText(this, "You can't play that card", Toast.LENGTH_SHORT).show()
+        }
+        // Logic to play a card from face-down cards
+        // Ensure to move the card from faceDownCards to the pile
         // And then refill the hand from the face-up cards if the draw pile is empty
     }
 
