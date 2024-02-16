@@ -10,7 +10,7 @@ enum class Suit {
 }
 
 enum class Rank {
-    THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN, JACK, QUEEN, KING, ACE, TWO
+    THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, JACK, QUEEN, KING, ACE, TWO, TEN,
 }
 
 //A two permits any card after, and a ten clears the pile

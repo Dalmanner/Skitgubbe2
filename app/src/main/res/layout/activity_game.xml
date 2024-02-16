@@ -8,6 +8,45 @@
     android:background="#A9FFFFFF"
     android:backgroundTint="#882440D1">
 
+    <ImageView
+        android:id="@+id/hello"
+        android:layout_width="279dp"
+        android:layout_height="219dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.659"
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@drawable/poop"
+        tools:layout_editor_absoluteY="81dp"
+        tools:visibility="visible" />
+
+    <LinearLayout
+        android:id="@+id/opponent_laid_out"
+        android:layout_width="wrap_content"
+        android:layout_height="168dp"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/opponent_laid_out1"
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:contentDescription="laid out card" />
+
+        <ImageView
+            android:id="@+id/opponent_laid_out2"
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:contentDescription="laid card" />
+
+        <ImageView
+            android:id="@+id/opponent_laid_out3"
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:contentDescription="laid out card" />
+    </LinearLayout>
+
     <LinearLayout
         android:id="@+id/user_laid_out"
         android:layout_width="362dp"
@@ -39,23 +78,6 @@
             android:layout_height="match_parent"
             android:contentDescription="user_laid_out3" />
 
-        <ImageView
-            android:id="@+id/user_face_down1"
-            android:layout_width="100dp"
-            android:layout_height="match_parent"
-            android:contentDescription="user_face_down1" />
-
-        <ImageView
-            android:id="@+id/user_face_down2"
-            android:layout_width="100dp"
-            android:layout_height="match_parent"
-            android:contentDescription="user_laid_out2" />
-
-        <ImageView
-            android:id="@+id/user_face_down3"
-            android:layout_width="100dp"
-            android:layout_height="match_parent"
-            android:contentDescription="user_face_down3" />
     </LinearLayout>
 
     <HorizontalScrollView
@@ -84,34 +106,6 @@
             <!-- Dynamically added card views will go here -->
         </LinearLayout>
     </HorizontalScrollView>
-
-    <LinearLayout
-        android:id="@+id/opponent_laid_out"
-        android:layout_width="wrap_content"
-        android:layout_height="168dp"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <ImageView
-            android:id="@+id/opponent_laid_out1"
-            android:layout_width="100dp"
-            android:layout_height="match_parent"
-            android:contentDescription="laid out card" />
-
-        <ImageView
-            android:id="@+id/opponent_laid_out2"
-            android:layout_width="100dp"
-            android:layout_height="match_parent"
-            android:contentDescription="laid card" />
-
-        <ImageView
-            android:id="@+id/opponent_laid_out3"
-            android:layout_width="100dp"
-            android:layout_height="match_parent"
-            android:contentDescription="laid out card" />
-    </LinearLayout>
 
     <ImageView
         android:id="@+id/draw_pile"

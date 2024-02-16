@@ -45,6 +45,7 @@ class GameActivity : AppCompatActivity(), Game.GameUpdateListener {
             }
         }
 
+
         coroutineScope.launch {
             withContext(Dispatchers.IO) {
             game = Game(this@GameActivity)
@@ -74,12 +75,28 @@ class GameActivity : AppCompatActivity(), Game.GameUpdateListener {
     }
 
     fun updateGameUI() {
+
         val playerHandLayout = findViewById<LinearLayout>(R.id.user_hand)
         val playerHand = game.players[0].handCards
+
+        val userFaceDownCardViews = listOf(findViewById<ImageView>(R.id.user_laid_out1), findViewById<ImageView>(R.id.user_laid_out2), findViewById<ImageView>(R.id.user_laid_out3))
+        userFaceDownCardViews.forEach { imageView ->
+            imageView.setImageResource(R.drawable.card_back)
+            imageView.visibility = if (game.players[0].faceDownCards.isNotEmpty()) ImageView.VISIBLE else ImageView.INVISIBLE
+        }
+
+        // Assuming AI's face-down cards are to be shown similarly
+        val aiFaceDownCardViews = listOf(findViewById<ImageView>(R.id.opponent_laid_out1), findViewById<ImageView>(R.id.opponent_laid_out2), findViewById<ImageView>(R.id.opponent_laid_out3))
+        aiFaceDownCardViews.forEach { imageView ->
+            imageView.setImageResource(R.drawable.card_back)
+            imageView.visibility = if (game.players[1].faceDownCards.isNotEmpty()) ImageView.VISIBLE else ImageView.INVISIBLE
+        }
 
         playerHandLayout.removeAllViews()
 
         playerHand.forEach { card -> addCardToLayout(playerHandLayout, card) }
+        //sort the hand:
+        game.players[0].handCards.sortBy { it.rank }
         updateLaidOutCards(game.players[0].faceUpCards, R.id.user_laid_out1, R.id.user_laid_out2, R.id.user_laid_out3)
         updateLaidOutCards(game.players[1].faceUpCards, R.id.opponent_laid_out1, R.id.opponent_laid_out2, R.id.opponent_laid_out3)
 
@@ -110,6 +127,17 @@ class GameActivity : AppCompatActivity(), Game.GameUpdateListener {
         }
     }
 
+    private fun revealFaceDownCard(player: Player, cardIndex: Int) {
+        val card = player.faceDownCards[cardIndex]
+        player.faceDownCards.removeAt(cardIndex)
+        // Update the ImageView for the card to show its face
+        val imageView = when (cardIndex) {
+            0, 1, 2 -> findViewById<ImageView>(R.id.discard_pile)
+            else -> null
+        }
+        imageView?.setImageResource(getCardImageResource(card))
+    }
+
     private fun enableFaceUpCardsForPlay() {
         val faceUpCardViews = arrayOf(findViewById<ImageView>(R.id.user_laid_out1), findViewById<ImageView>(R.id.user_laid_out2), findViewById<ImageView>(R.id.user_laid_out3))
         val faceUpCards = game.players[0].faceUpCards
@@ -137,17 +165,11 @@ class GameActivity : AppCompatActivity(), Game.GameUpdateListener {
             game.discardPile.add(card)
         } else {
             Toast.makeText(this, "You can't play that card", Toast.LENGTH_SHORT).show()
-
         }
-        // Logic to play a card from face-up cards
-        // Ensure to move the card from faceUpCards to the pile
-        // And then refill the hand from the face-up cards if the draw pile is empty
     }
 
-    //Logic to play a card from face-down cards:
-
     private fun enableFaceDownCardsForPlay() {
-        val faceDownCardViews = arrayOf(findViewById<ImageView>(R.id.user_face_down1), findViewById<ImageView>(R.id.user_face_down2), findViewById<ImageView>(R.id.user_laid_out3))
+        val faceDownCardViews = arrayOf(findViewById<ImageView>(R.id.user_laid_out1), findViewById<ImageView>(R.id.user_laid_out2), findViewById<ImageView>(R.id.user_laid_out3))
         val faceDownCards = game.players[0].faceDownCards
 
         faceDownCardViews.forEachIndexed { index, imageView ->
@@ -156,6 +178,7 @@ class GameActivity : AppCompatActivity(), Game.GameUpdateListener {
                 imageView.setOnClickListener{
                     lifecycleScope.launch {
                         playCardFromFaceDownCards(card, game.players[0])
+                        revealFaceDownCard(game.players[0], index)
                         onUpdateGameUI()
                     }
                 }
@@ -168,15 +191,14 @@ class GameActivity : AppCompatActivity(), Game.GameUpdateListener {
 
     fun playCardFromFaceDownCards(card: Card, player: Player) {
         if (player.canPlayCard(card, game.discardPile.lastOrNull())) {
+
             player.faceDownCards.remove(card)
             game.discardPile.add(card)
         } else {
             Toast.makeText(this, "You can't play that card", Toast.LENGTH_SHORT).show()
         }
-        // Logic to play a card from face-down cards
-        // Ensure to move the card from faceDownCards to the pile
-        // And then refill the hand from the face-up cards if the draw pile is empty
     }
+
 
     private fun addCardToLayout(layout: LinearLayout, card: Card) {
         val cardImageView = ImageView(this).apply {

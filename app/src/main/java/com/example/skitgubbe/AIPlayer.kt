@@ -3,10 +3,11 @@ package com.example.skitgubbe
 class AIPlayer : Player() {
 
          override fun chooseCardToPlay(topCardOfPile: Card?): Card? {
+             //shouldUseFaceUpCards:
             if (topCardOfPile?.rank == Rank.TWO) {
                 return handCards.filter { it.rank != Rank.TWO && it.rank != Rank.TEN }
                     .minByOrNull { it.rank }
-                    ?: handCards.minByOrNull { it.rank } // Play any card if only special cards are left.
+                    ?: handCards.minByOrNull { it.rank }
             }
             val validCards = handCards.filter { topCardOfPile == null || it.rank >= topCardOfPile.rank }
             val bestChoice = validCards.minByOrNull { it.rank }

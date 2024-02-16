@@ -29,6 +29,8 @@ open class Player {
     fun pickUpPile(pile: MutableList<Card>) {
         handCards.addAll(pile)
         pile.clear()
+        //sort the hand:
+        handCards.sortBy { it.rank }
         Log.d("Player", "Picked up the pile '${pile.size}' cards")
     }
 

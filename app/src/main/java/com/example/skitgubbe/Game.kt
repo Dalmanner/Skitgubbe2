@@ -64,77 +64,46 @@ class Game(private val context: Context) {
             drawPile.removeAt(0)
             makeText(context, "Cards left in draw pile: " + drawPile.size, LENGTH_SHORT).show()
         }
+        //sort the hand:
+        players[0].handCards.sortBy { it.rank }
         gameUpdateListener?.onUpdateGameUI() // Notify the UI to update after drawing cards
         if (player !is AIPlayer){
+            isGameOver(0)
             aiPlayerTakeTurn()
         }
     }
 
-    private fun playRound(startingPlayerIndex: Int?) {
-        // Main game loop
-       // coroutineScope.launch {
-            var currentPlayerIndex = startingPlayerIndex
-            while (!isGameOver(false)) {
-
-                val currentPlayer = players[currentPlayerIndex!!]
-                // Player's turn logic
-                //takeTurn(currentPlayer)
-
-                // Move to the next player
-                currentPlayerIndex = (currentPlayerIndex + 1) % players.size
-                isGameOver(true)
-            }
-        // Determine winner or loser at the end of the game
-        if (players[0].handCards.size == 0) {
-            Toast.makeText(context, "You won!", LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(context, "You lost!", LENGTH_SHORT).show()
-        }
-    }
-
-    suspend fun takeTurn(player: Player) {
-        var continueTurn = true
-        while (continueTurn) {
-          /*  suspendCoroutine<Unit> { continuation ->
-                gameUpdateListener?.onUpdateGameUI {
-                    continuation.resume(Unit)
-                }
-            } */
-            val topCardOfPile = discardPile.lastOrNull()
-            val cardToPlay = player.chooseCardToPlay(topCardOfPile)
-
-            if (cardToPlay != null && player.canPlayCard(cardToPlay, topCardOfPile)) {
-                discardPile.add(cardToPlay)
-                player.playCard(cardToPlay)
-                if (cardToPlay.rank == Rank.TEN) {
-                    discardPile.clear()
-
-                }
-                // Draw a new card if the deck has cards left
-                if (deck.hasCards()) {
-                    player.drawCard(deck)
-                }
-            } else {
-                player.pickUpPile(discardPile)
-                continueTurn = false
-            }
-        }
-
-        // Ensure the player always has at least three cards if possible
-        while (player.handCards.size < 3 && deck.hasCards()) {
-            player.drawCard(deck)
-        }
-
-        gameUpdateListener?.onUpdateGameUI()
-
-    }
     fun aiPlayerTakeTurn() {
         makeText(context, "AI's turn, thinking...", LENGTH_SHORT).show()
+        val imageView = ImageView(context)
+        ImageView(context).setImageResource(R.drawable.poop)
+        imageView.visibility = ImageView.VISIBLE
 
         val aiPlayer = players[1] as? AIPlayer
 
         aiPlayer?.let {
             val topCardOfPile = discardPile.lastOrNull()
+
+            if (shouldUseFaceUpCards(aiPlayer)) {
+                val cardToPlay = aiPlayer.faceUpCards.first()
+                aiPlayer.playCard(cardToPlay)
+                discardPile.add(cardToPlay)
+                aiPlayer.faceUpCards.remove(cardToPlay)
+                gameUpdateListener?.onUpdateGameUI()
+                isGameOver(1)
+                return
+            }
+
+            if (shouldUseFaceDownCards(aiPlayer)) {
+                val cardToPlay = aiPlayer.faceDownCards.first()
+                aiPlayer.playCard(cardToPlay)
+                discardPile.add(cardToPlay)
+                aiPlayer.faceDownCards.remove(cardToPlay)
+                gameUpdateListener?.onUpdateGameUI()
+                isGameOver(1)
+                return
+            }
+
             Thread.sleep(5000)
             val cardToPlay = aiPlayer.chooseCardToPlay(topCardOfPile)//or null)
 
@@ -147,6 +116,7 @@ class Game(private val context: Context) {
                 val checkForSameRank = aiPlayer.handCards.filter { it.rank == cardToPlay?.rank }
                 if (checkForSameRank.isNotEmpty()) {
                     checkForSameRank.forEach { additionalCard ->
+                        Thread.sleep(2000)
                         aiPlayer.playCard(additionalCard)
                         discardPile.add(additionalCard)
                     }
@@ -170,10 +140,16 @@ class Game(private val context: Context) {
             } else {
 
                 aiPlayer.pickUpPile(discardPile)
+                //activate a imageView to show the picked up pile
                 makeText(context, "AI picked up the pile", LENGTH_SHORT).show()
                 makeText(context," " + aiPlayer.handCards.map { it.rank }, LENGTH_SHORT).show()
+
             }
+            val imageView2 = ImageView(context)
+            ImageView(context).setImageResource(R.drawable.poop)
+            imageView2.visibility = ImageView.INVISIBLE
             gameUpdateListener?.onUpdateGameUI()
+            isGameOver(1)
         }
 
     }
@@ -186,17 +162,17 @@ class Game(private val context: Context) {
         return player.handCards.isEmpty() && player.faceUpCards.isEmpty() && player.faceDownCards.isNotEmpty() && drawPile.isEmpty()
     }
 
-    //end the game if the drawPile is empty and the player has no cards left, and declare the loser to be Skitgubbe:
+    //End the game if the drawPile is empty and the current player has no cards left, and the last face down card is succesfully picked, declare the loser to be Skitgubbe:
 
-    fun isGameOver(shouldEndGame: Boolean): Boolean {
-        if (drawPile.isEmpty() && players[0].handCards.isEmpty()) {
-            if (shouldEndGame) {
-                Toast.makeText(context, // Declare the loser to be Skitgubbe
-                    "Skitgubbe!", LENGTH_SHORT).show()
+    fun isGameOver (currentPlayer: Int) {
+        if (drawPile.isEmpty() && players[currentPlayer].handCards.isEmpty() && players[currentPlayer].faceDownCards.isEmpty()) {
+            //makeText if currentPlayer is 0 then AI player is Skitgubbe, else human player is Skitgubbe:
+            if (currentPlayer == 0) {
+                makeText(context, "AI player is Skitgubbe", LENGTH_SHORT).show()
+            } else {
+                makeText(context, "You are Skitgubbe", LENGTH_SHORT).show()
             }
-            return true
         }
-        return false
     }
 
 
